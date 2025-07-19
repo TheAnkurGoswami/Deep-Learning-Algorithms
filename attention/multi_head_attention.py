@@ -3,8 +3,8 @@ from typing import Optional
 import torch
 from torch import Tensor
 
-from attention.Projection import Projection
-from attention.ScaledDotProductAttention import ScaledDotProductAttention
+from attention.projection import Projection
+from attention.scaled_dot_product_attention import ScaledDotProductAttention
 
 
 class MultiHeadAttention(torch.nn.Module):
