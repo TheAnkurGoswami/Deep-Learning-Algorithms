@@ -12,12 +12,15 @@ class Projection(torch.nn.Module):
         self.add_bias = add_bias
 
         self._weights = torch.normal(
-            mean=0.0, std=1.0, size=(self._in_features, self._out_features)
-        ).requires_grad_(True)
+            mean=0.0,
+            std=1.0,
+            size=(self._in_features, self._out_features),
+            requires_grad=True,
+        )
         if add_bias:
             self._bias = torch.zeros(
-                size=(1, self._out_features)
-            ).requires_grad_(True)
+                size=(1, self._out_features), requires_grad=True
+            )
         else:
             self._bias = None
 
