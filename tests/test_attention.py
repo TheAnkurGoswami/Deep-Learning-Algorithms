@@ -2,13 +2,14 @@ import numpy as np
 import pytest
 import torch
 
-from attention.MultiHeadAttention import MultiHeadAttention
+from attention.multi_head_attention import MultiHeadAttention
 from utils import check_closeness
 
 torch.set_printoptions(precision=10)
 np.set_printoptions(precision=10)
 np.random.seed(69)
 torch.manual_seed(69)
+
 
 # TODO: batch_size = 1
 @pytest.mark.parametrize(
@@ -146,15 +147,15 @@ def test_multi_head_attention(batch_size):
 
     in_proj_wt = torch.vstack(list(all_proj_wt))
     in_proj_bias = torch.hstack(list(all_proj_bias))
-    print(in_proj_wt.detach().numpy(),
-        mha_pt.in_proj_weight.detach().numpy())
+    print(in_proj_wt.detach().numpy(), mha_pt.in_proj_weight.detach().numpy())
     assert check_closeness(
         in_proj_wt.detach().numpy(),
         mha_pt.in_proj_weight.detach().numpy(),
     )  # , f"{get_weight_template('pt')}"
     print(
         ">>",
-        in_proj_bias.detach().numpy().reshape(3, -1),"\n",
+        in_proj_bias.detach().numpy().reshape(3, -1),
+        "\n",
         mha_pt.in_proj_bias.detach().numpy().reshape(3, -1),
     )
     assert check_closeness(
