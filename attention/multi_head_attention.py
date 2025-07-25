@@ -16,11 +16,13 @@ class MultiHeadAttention(torch.nn.Module):
         dim_k: Optional[int] = None,
         dim_v: Optional[int] = None,
         add_bias: bool = True,
+        causal_mask: bool = False,
     ):
         super().__init__()
         self.d_model: int = d_model  # Store as int, not tensor
         self.num_heads: int = num_heads
         self.add_bias: bool = add_bias
+        self.causal_mask: bool = causal_mask
 
         # If specific dimensions for Q, K, V are not provided,
         # default them to d_model
@@ -90,7 +92,10 @@ class MultiHeadAttention(torch.nn.Module):
                 head_size = self.get_head_size(param)
                 start, end = (head_size * head_ix, head_size * (head_ix + 1))
                 sliced_projs.append(proj_mat[:, :, start:end])
-            head_output = ScaledDotProductAttention().forward(*sliced_projs)
+
+            head_output = ScaledDotProductAttention().forward(
+                *sliced_projs, causal_mask=self.causal_mask
+            )
             head_outputs.append(head_output)
 
         concat_heads = torch.concat(head_outputs, dim=-1)
