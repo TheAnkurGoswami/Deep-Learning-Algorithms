@@ -20,7 +20,7 @@ class FeedForwardNetwork(torch.nn.Module):
         return x
 
 
-class Encoder(torch.nn.Module):
+class EncoderLayer(torch.nn.Module):
     def __init__(self, d_model: int, num_heads: int, d_ff: int = 2048):
         super().__init__()
         self.mha = MultiHeadAttention(d_model=d_model, num_heads=num_heads)
