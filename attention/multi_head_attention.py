@@ -72,13 +72,13 @@ class MultiHeadAttention(torch.nn.Module):
 
     def forward(self, inputs: Tensor):
         # print("inputs", inputs)
-        q_proj = self.q_proj_layer.forward(inputs)
+        q_proj = self.q_proj_layer(inputs)
         # print("q_w", self.q_proj_layer._weights)
         # print("q_proj", q_proj)
-        k_proj = self.k_proj_layer.forward(inputs)
+        k_proj = self.k_proj_layer(inputs)
         # print("k_w", self.k_proj_layer._weights)
         # print("k_proj", k_proj)
-        v_proj = self.v_proj_layer.forward(inputs)
+        v_proj = self.v_proj_layer(inputs)
 
         head_outputs = []
 
