@@ -13,7 +13,7 @@ class DecoderLayer(torch.nn.Module):
         )
         self.layer_norm_1 = LayerNorm(d_model=d_model)
         self.mha = MultiHeadAttention(d_model=d_model, num_heads=num_heads)
-        self.layer_norm_2 = LayerNorm()
+        self.layer_norm_2 = LayerNorm(d_model=d_model)
         self.ffn = FeedForwardNetwork(d_model=d_model, d_ff=d_ff)
         self.layer_norm_3 = LayerNorm(d_model=d_model)
 
