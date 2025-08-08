@@ -28,7 +28,7 @@ The `RotaryPositionalEncoding` class implements Rotary Positional Encoding (RoPE
 Instead of adding positional information to the embeddings, RoPE rotates the existing embeddings based on their position. The rotation is applied to pairs of features. For a pair of features $(x_{2j-1}, x_{2j})$ at position $m$, the transformation is given by:
 
 $$
-\begin{pmatrix} x'_{2j-1} \\ x'_{2j} \end{pmatrix} = \begin{pmatrix} \cos(m\theta_j) & -\sin(m\theta_j) \\ \sin(m\theta_j) & \cos(m\theta_j) \end{pmatrix} \begin{pmatrix} x_{2j-1} \\ x_{2j} \end{pmatrix}
+\left( \begin{matrix} x'_{2j-1} \\ x'_{2j} \end{matrix} \right) = \left( \begin{matrix} \cos(m\theta_j) & -\sin(m\theta_j) \\ \sin(m\theta_j) & \cos(m\theta_j) \end{matrix} \right) \left( \begin{matrix} x_{2j-1} \\ x_{2j} \end{matrix} \right)
 $$
 
 where $\theta_j = 10000^{-2(j-1)/d_{\text{model}}}$. This rotation is applied for $j=1, \dots, d_{\text{model}}/2$.
