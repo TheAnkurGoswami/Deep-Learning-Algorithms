@@ -7,7 +7,7 @@ The `transformers` module contains the core components of the Transformer model,
 The `FeedForwardNetwork` class implements the position-wise feed-forward network used in the Transformer encoder and decoder layers. It consists of two linear transformations with a ReLU activation in between.
 
 $$
-\text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2
+\text{FFN}(x) = \max(0, xW_{1} + b_{1})W_{2} + b_{2}
 $$
 
 ## Encoder
