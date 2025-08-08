@@ -25,33 +25,10 @@ Where:
 
 The `RotaryPositionalEncoding` class implements Rotary Positional Encoding (RoPE). RoPE encodes absolute positional information with a rotation matrix and naturally incorporates explicit relative position dependency in self-attention.
 
-For a token at position $m$, its embedding $x_m$ is rotated by an angle $\theta_m$. The rotation is applied to pairs of features.
-
-Given an input $x = (x_1, x_2, \dots, x_d)$, the rotated vector is:
+Instead of adding positional information to the embeddings, RoPE rotates the existing embeddings based on their position. The rotation is applied to pairs of features. For a pair of features $(x_{2j-1}, x_{2j})$ at position $m$, the transformation is given by:
 
 $$
-\begin{pmatrix}
-x_1' \\
-x_2' \\
-\vdots \\
-x_{d-1}' \\
-x_d'
-\end{pmatrix}
-=
-\begin{pmatrix}
-\cos(m\theta_1) & -\sin(m\theta_1) & \dots & 0 & 0 \\
-\sin(m\theta_1) & \cos(m\theta_1) & \dots & 0 & 0 \\
-\vdots & \vdots & \ddots & \vdots & \vdots \\
-0 & 0 & \dots & \cos(m\theta_{d/2}) & -\sin(m\theta_{d/2}) \\
-0 & 0 & \dots & \sin(m\theta_{d/2}) & \cos(m\theta_{d/2})
-\end{pmatrix}
-\begin{pmatrix}
-x_1 \\
-x_2 \\
-\vdots \\
-x_{d-1} \\
-x_d
-\end{pmatrix}
+\begin{pmatrix} x'_{2j-1} \\ x'_{2j} \end{pmatrix} = \begin{pmatrix} \cos(m\theta_j) & -\sin(m\theta_j) \\ \sin(m\theta_j) & \cos(m\theta_j) \end{pmatrix} \begin{pmatrix} x_{2j-1} \\ x_{2j} \end{pmatrix}
 $$
 
-where $\theta_i = 10000^{-2(i-1)/d}$.
+where $\theta_j = 10000^{-2(j-1)/d_{\text{model}}}$. This rotation is applied for $j=1, \dots, d_{\text{model}}/2$.
