@@ -12,7 +12,6 @@ class Transformer(torch.nn.Module):
         d_model: int,
         num_heads: int,
         dff: int,
-        out_vocab_size: int,
     ):
         super().__init__()
         self.positional_encoding = SinusoidalPositionalEncoding(
