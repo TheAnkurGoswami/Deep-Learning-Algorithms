@@ -27,10 +27,10 @@ The `MultiHeadAttention` class implements the multi-head attention mechanism. It
 The input is projected into $h$ different subspaces, and scaled dot-product attention is applied in each subspace. The outputs are then concatenated and projected back to the original dimension.
 
 $$
-\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_{1}, \dots, \text{head}_{h})W^O
+\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}\_{1}, \dots, \text{head}_{h})W^O
 $$
 
-where $\text{head}_{i} = \text{Attention}(QW_{i}^Q, KW_{i}^K, VW_{i}^V)$.
+where $\text{head}\_{i} = \text{Attention}(QW_{i}^Q, KW_{i}^K, VW_{i}^V)$.
 
 The projection matrices $W_{i}^Q$, $W_{i}^K$, $W_{i}^V$ and $W^O$ are learned during training.
 
