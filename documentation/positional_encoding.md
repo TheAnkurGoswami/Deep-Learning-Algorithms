@@ -29,7 +29,8 @@ Instead of adding positional information to the embeddings, RoPE rotates the exi
 
 $$
 \mathbf{R}_{m}^{d} =
-\begin{pmatrix}
+\left[
+\begin{array}{ccccccc}
 \cos(m\theta_{1}) & -\sin(m\theta_{1}) & 0 & 0 & \dots & 0 & 0 \\
 \sin(m\theta_{1}) & \cos(m\theta_{1}) & 0 & 0 & \dots & 0 & 0 \\
 0 & 0 & \cos(m\theta_{2}) & -\sin(m\theta_{2}) & \dots & 0 & 0 \\
@@ -37,7 +38,8 @@ $$
 \vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
 0 & 0 & 0 & 0 & \dots & \cos(m\theta_{d/2}) & -\sin(m\theta_{d/2}) \\
 0 & 0 & 0 & 0 & \dots & \sin(m\theta_{d/2}) & \cos(m\theta_{d/2})
-\end{pmatrix}
+\end{array}
+\right]
 $$
 
 The rotated embedding is then $f(\mathbf{x}, m) = \mathbf{R}_{m}^{d} \mathbf{x}$.
