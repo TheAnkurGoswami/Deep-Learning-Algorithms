@@ -8,6 +8,26 @@ from attention.scaled_dot_product_attention import ScaledDotProductAttention
 
 
 class MultiHeadAttention(torch.nn.Module):
+    """
+    Implements the Multi-Head Attention mechanism.
+
+    Multi-Head Attention allows the model to jointly attend to information from
+    different representation subspaces at different positions. It consists of
+    several parallel attention layers, or "heads".
+
+    The mechanism involves three main steps:
+    1.  **Linear Projections**: The input queries, keys, and values are linearly
+        projected `num_heads` times with different, learned linear projections.
+    2.  **Scaled Dot-Product Attention**: For each head, Scaled Dot-Product
+        Attention is applied in parallel to the projected queries, keys, and values.
+    3.  **Concatenation and Final Projection**: The outputs of the attention heads
+        are concatenated and then passed through a final linear projection to
+        produce the final output.
+
+    This implementation supports different dimensions for queries, keys, and values,
+    and allows for causal masking.
+    """
+
     def __init__(
         self,
         d_model: int,
@@ -18,6 +38,23 @@ class MultiHeadAttention(torch.nn.Module):
         add_bias: bool = True,
         causal_mask: bool = False,
     ):
+        """
+        Initializes the MultiHeadAttention module.
+
+        Args:
+            d_model (int): The dimensionality of the input and output.
+            num_heads (int): The number of parallel attention heads.
+            dim_q (int, optional): The dimensionality of the queries. If None,
+                defaults to `d_model`.
+            dim_k (int, optional): The dimensionality of the keys. If None,
+                defaults to `d_model`.
+            dim_v (int, optional): The dimensionality of the values. If None,
+                defaults to `d_model`.
+            add_bias (bool, optional): Whether to include a bias term in the
+                linear projections. Defaults to True.
+            causal_mask (bool, optional): If True, applies a causal mask to
+                prevent attention to future positions. Defaults to False.
+        """
         super().__init__()
         self.d_model: int = d_model  # Store as int, not tensor
         self.num_heads: int = num_heads
@@ -61,7 +98,17 @@ class MultiHeadAttention(torch.nn.Module):
             add_bias=add_bias,
         )
 
-    def get_head_size(self, param: str):
+    def get_head_size(self, param: str) -> int:
+        """
+        Calculates the size of a single attention head for a given parameter.
+
+        Args:
+            param (str): The parameter for which to calculate the head size.
+                         Can be "query", "key", or "value".
+
+        Returns:
+            int: The size of a single attention head.
+        """
         match param:
             case "query":
                 return self.dim_q // self.num_heads
@@ -70,18 +117,24 @@ class MultiHeadAttention(torch.nn.Module):
             case "value":
                 return self.dim_v // self.num_heads
 
-    def forward(self, inputs: Tensor):
-        # print("inputs", inputs)
+    def forward(self, inputs: Tensor) -> Tensor:
+        """
+        Forward pass for the Multi-Head Attention mechanism.
+
+        Args:
+            inputs (Tensor): The input tensor of shape (batch_size, seq_len, d_model).
+
+        Returns:
+            Tensor: The output tensor of shape (batch_size, seq_len, d_model).
+        """
+        # Project the input into queries, keys, and values
         q_proj = self.q_proj_layer(inputs)
-        # print("q_w", self.q_proj_layer._weights)
-        # print("q_proj", q_proj)
         k_proj = self.k_proj_layer(inputs)
-        # print("k_w", self.k_proj_layer._weights)
-        # print("k_proj", k_proj)
         v_proj = self.v_proj_layer(inputs)
 
         head_outputs = []
 
+        # Process each attention head in parallel
         for head_ix in range(self.num_heads):
             sliced_projs = []
             for param, proj_mat in zip(
@@ -93,11 +146,15 @@ class MultiHeadAttention(torch.nn.Module):
                 start, end = (head_size * head_ix, head_size * (head_ix + 1))
                 sliced_projs.append(proj_mat[:, :, start:end])
 
+            # Apply scaled dot-product attention for the current head
             head_output = ScaledDotProductAttention().forward(
                 *sliced_projs, causal_mask=self.causal_mask
             )
             head_outputs.append(head_output)
 
+        # Concatenate the outputs of all heads
         concat_heads = torch.concat(head_outputs, dim=-1)
+
+        # Apply the final linear projection
         out = self.out_proj_layer.forward(concat_heads)
         return out
