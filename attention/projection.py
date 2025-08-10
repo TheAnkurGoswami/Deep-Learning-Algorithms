@@ -68,3 +68,50 @@ class Projection(torch.nn.Module):
             output += self._bias
         # output: (batch, seq_len, out_features)
         return output
+
+
+
+class FeedForwardNetwork(torch.nn.Module):
+    """
+    Implements the Position-wise Feed-Forward Network (FFN).
+
+    The FFN is applied to each position separately and identically. It consists of
+    two linear transformations with a ReLU activation in between.
+
+    The formula is:
+    FFN(x) = max(0, x @ W1 + b1) @ W2 + b2
+
+    This network is a key component of both the encoder and decoder layers in the
+    Transformer model.
+    """
+
+    def __init__(self, d_model: int, d_ff: int):
+        """
+        Initializes the FeedForwardNetwork module.
+
+        Args:
+            d_model (int): The dimensionality of the input and output.
+            d_ff (int): The dimensionality of the inner-layer.
+        """
+        super().__init__()
+        self.linear1 = Projection(d_model, d_ff)
+        self.activation = torch.nn.ReLU()
+        self.linear2 = Projection(d_ff, d_model)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass for the Position-wise Feed-Forward Network.
+
+        Args:
+            x (torch.Tensor): The input tensor of shape
+                (batch_size, seq_len, d_model).
+
+        Returns:
+            torch.Tensor: The output tensor of the same shape as the input.
+        """
+        # x -> (batch_size, seq_len, d_model)
+        x = self.linear1(x)  # (batch_size, seq_len, d_ff)
+        x = self.activation(x)  # (batch_size, seq_len, d_ff)
+        x = self.linear2(x)  # (batch_size, seq_len, d_model)
+        return x
+

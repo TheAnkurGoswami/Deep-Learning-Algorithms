@@ -2,7 +2,7 @@ import torch
 
 from attention.layernorm import LayerNorm
 from attention.multi_head_attention import MultiHeadAttention
-from transformers.encoder import FeedForwardNetwork
+from attention.projection import FeedForwardNetwork
 
 
 class DecoderLayer(torch.nn.Module):

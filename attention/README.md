@@ -48,6 +48,16 @@ Where:
 - $W$ is the weight matrix.
 - $b$ is the bias vector.
 
+
+## Feed-Forward Network
+
+The `FeedForwardNetwork` class implements the position-wise feed-forward network used in the Transformer encoder and decoder layers. It consists of two linear transformations with a ReLU activation in between.
+
+$$
+\text{FFN}(x) = \max(0, xW_{1} + b_{1})W_{2} + b_{2}
+$$
+
+
 ## Layer Normalization
 
 The `LayerNorm` class implements layer normalization. It normalizes the inputs across the features.
