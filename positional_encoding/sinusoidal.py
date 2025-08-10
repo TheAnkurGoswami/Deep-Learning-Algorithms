@@ -50,20 +50,21 @@ class SinusoidalPositionalEncoding(torch.nn.Module):
             torch.Tensor: The positional encodings of the same shape as the input.
         """
         # input_ -> (batch_size, seq_len, d_model)
-        seq_len = input_.shape[1]
-        positions = torch.arange(seq_len, device=input_.device).reshape(
+        positions = torch.arange(input_.shape[1]).reshape(
             -1, 1
         )  # (seq_len, 1)
-
         # Calculate the dimension indices for the denominator
-        index_vals = torch.arange(self.d_model, device=input_.device)
+        index_vals = torch.arange(self.d_model)
         index_vals[1::2] = index_vals[1::2] - 1
 
         encoding = torch.zeros_like(input_)
 
         # Calculate the positional encodings for even and odd dimensions
-        denominator = self.wavelength ** (index_vals[::2] / self.d_model)
-        encoding[:, :, ::2] = torch.sin(positions / denominator)
-        encoding[:, :, 1::2] = torch.cos(positions / denominator)
+        encoding[:, :, ::2] = torch.sin(
+            positions / self.wavelength ** (index_vals[::2] / self.d_model)
+        )
+        encoding[:, :, 1::2] = torch.cos(
+            positions / self.wavelength ** (index_vals[1::2] / self.d_model)
+        )
 
         return encoding
