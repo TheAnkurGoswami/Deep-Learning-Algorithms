@@ -2,14 +2,6 @@
 
 The `transformers` module contains the core components of the Transformer model, including the encoder, decoder, and the full Transformer architecture.
 
-## Feed-Forward Network
-
-The `FeedForwardNetwork` class implements the position-wise feed-forward network used in the Transformer encoder and decoder layers. It consists of two linear transformations with a ReLU activation in between.
-
-$$
-\text{FFN}(x) = \max(0, xW_{1} + b_{1})W_{2} + b_{2}
-$$
-
 ## Encoder
 
 The `EncoderLayer` class represents a single layer of the Transformer encoder. It consists of two sub-layers:
