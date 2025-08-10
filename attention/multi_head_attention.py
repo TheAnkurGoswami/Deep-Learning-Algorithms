@@ -117,7 +117,10 @@ class MultiHeadAttention(torch.nn.Module):
             case "value":
                 return self.dim_v // self.num_heads
 
-    def forward(self, inputs: Tensor) -> Tensor:
+    def forward(self, inputs_q: Tensor, 
+        inputs_k: Tensor,
+        inputs_v: Tensor
+                ) -> Tensor:
         """
         Forward pass for the Multi-Head Attention mechanism.
 
@@ -128,9 +131,9 @@ class MultiHeadAttention(torch.nn.Module):
             Tensor: The output tensor of shape (batch_size, seq_len, d_model).
         """
         # Project the input into queries, keys, and values
-        q_proj = self.q_proj_layer(inputs)
-        k_proj = self.k_proj_layer(inputs)
-        v_proj = self.v_proj_layer(inputs)
+        q_proj = self.q_proj_layer(inputs_q)
+        k_proj = self.k_proj_layer(inputs_k)
+        v_proj = self.v_proj_layer(inputs_v)
 
         head_outputs = []
 

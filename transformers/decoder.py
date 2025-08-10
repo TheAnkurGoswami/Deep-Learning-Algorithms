@@ -60,7 +60,7 @@ class DecoderLayer(torch.nn.Module):
             torch.Tensor: The output tensor of the same shape as `in_embeddings`.
         """
         # Masked Multi-Head Self-Attention sub-layer
-        mmha_out = self.mmha(in_embeddings)
+        mmha_out = self.mmha(in_embeddings, in_embeddings, in_embeddings)
         # Residual connection and layer normalization
         norm_out_1 = self.layer_norm_1(mmha_out + in_embeddings)
 

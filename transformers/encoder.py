@@ -45,7 +45,7 @@ class EncoderLayer(torch.nn.Module):
             torch.Tensor: The output tensor of the same shape as the input.
         """
         # Multi-Head Attention sub-layer
-        mha_out = self.mha(in_embeddings)
+        mha_out = self.mha(in_embeddings, in_embeddings, in_embeddings)
         # Residual connection and layer normalization
         norm_out_1 = self.layer_norm_1(mha_out + in_embeddings)
 
