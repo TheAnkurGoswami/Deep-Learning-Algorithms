@@ -5,20 +5,23 @@ class RotaryPositionalEncoding(torch.nn.Module):
     """
     Implements Rotary Positional Encoding (RoPE).
 
-    RoPE is a type of positional encoding that injects positional information into a
-    sequence of tokens by rotating the embedding vectors. Unlike sinusoidal positional
-    encodings which are added to the embeddings, RoPE is applied multiplicatively.
+    RoPE is a type of positional encoding that injects positional information
+    into a sequence of tokens by rotating the embedding vectors. Unlike
+    sinusoidal positional encodings which are added to the embeddings, RoPE is
+    applied multiplicatively.
 
-    The core idea is to represent the position `m` as a rotation matrix `R_m` and
+    The core idea is to represent the position `m` as a rotation matrix `R_m` &
     apply it to the input embedding `x_m`. For a `d`-dimensional embedding, the
-    dimensions are paired up. For each pair `(x_{2i-1}, x_{2i})`, the rotation is:
+    dimensions are paired up. For each pair `(x_{2i-1}, x_{2i})`, the rotation
+    is:
 
     [x'_{m, 2i-1}] = [cos(m*theta_i)  -sin(m*theta_i)] [x_{m, 2i-1}]
     [x'_{m, 2i}]   = [sin(m*theta_i)   cos(m*theta_i)] [x_{m, 2i}]
 
     where `theta_i = 10000^(-2i/d)`.
 
-    This can be expressed using complex numbers as `x'_m = x_m * exp(i * m * theta)`.
+    This can be expressed using complex numbers as
+    `x'_m = x_m * exp(i * m * theta)`.
     The key property of RoPE is that the dot product between rotated vectors
     `<R_m(q), R_n(k)>` only depends on the relative position `m-n`.
     """

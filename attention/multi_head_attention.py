@@ -16,16 +16,18 @@ class MultiHeadAttention(torch.nn.Module):
     several parallel attention layers, or "heads".
 
     The mechanism involves three main steps:
-    1.  **Linear Projections**: The input queries, keys, and values are linearly
-        projected `num_heads` times with different, learned linear projections.
+    1.  **Linear Projections**: The input queries, keys, and values are
+        linearly projected `num_heads` times with different, learned linear
+        projections.
     2.  **Scaled Dot-Product Attention**: For each head, Scaled Dot-Product
-        Attention is applied in parallel to the projected queries, keys, and values.
-    3.  **Concatenation and Final Projection**: The outputs of the attention heads
-        are concatenated and then passed through a final linear projection to
-        produce the final output.
+        Attention is applied in parallel to the projected queries, keys, and
+        values.
+    3.  **Concatenation and Final Projection**: The outputs of the attention
+        heads are concatenated and then passed through a final linear
+        projection to produce the final output.
 
-    This implementation supports different dimensions for queries, keys, and values,
-    and allows for causal masking.
+    This implementation supports different dimensions for queries, keys, and
+    values, and allows for causal masking.
     """
 
     def __init__(
@@ -117,15 +119,15 @@ class MultiHeadAttention(torch.nn.Module):
             case "value":
                 return self.dim_v // self.num_heads
 
-    def forward(self, inputs_q: Tensor, 
-        inputs_k: Tensor,
-        inputs_v: Tensor
-                ) -> Tensor:
+    def forward(
+        self, inputs_q: Tensor, inputs_k: Tensor, inputs_v: Tensor
+    ) -> Tensor:
         """
         Forward pass for the Multi-Head Attention mechanism.
 
         Args:
-            inputs (Tensor): The input tensor of shape (batch_size, seq_len, d_model).
+            inputs (Tensor): The input tensor of shape
+                (batch_size, seq_len, d_model).
 
         Returns:
             Tensor: The output tensor of shape (batch_size, seq_len, d_model).

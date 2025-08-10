@@ -7,8 +7,8 @@ class ScaledDotProductAttention(torch.nn.Module):
     Computes Scaled Dot-Product Attention.
 
     This is a critical component of the Transformer model, as described in the
-    "Attention is All You Need" paper. It calculates attention scores for a set of
-    queries, keys, and values.
+    "Attention is All You Need" paper. It calculates attention scores for a set
+    of queries, keys, and values.
 
     The formula is as follows:
     Attention(Q, K, V) = softmax( (Q @ K.T) / sqrt(d_k) ) @ V
@@ -19,15 +19,17 @@ class ScaledDotProductAttention(torch.nn.Module):
     - d_k: The dimension of the keys.
 
     Args:
-        q_proj (Tensor): The queries tensor of shape (batch, seq_len, dim_model).
+        q_proj (Tensor): The queries tensor of shape
+            (batch, seq_len, dim_model).
         k_proj (Tensor): The keys tensor of shape (batch, seq_len, dim_model).
-        v_proj (Tensor): The values tensor of shape (batch, seq_len, dim_model).
+        v_proj (Tensor): The values tensor of shape
+            (batch, seq_len, dim_model).
         causal_mask (bool, optional): If True, applies a causal mask to prevent
             attention to future positions. Defaults to False.
 
     Returns:
-        Tensor: The output of the attention mechanism, with the same shape as the
-            queries and values.
+        Tensor: The output of the attention mechanism, with the same shape as
+            the queries and values.
     """
 
     def forward(

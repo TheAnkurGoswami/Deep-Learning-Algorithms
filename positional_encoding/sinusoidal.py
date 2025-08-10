@@ -5,10 +5,10 @@ class SinusoidalPositionalEncoding(torch.nn.Module):
     """
     Implements Sinusoidal Positional Encoding.
 
-    This module generates positional encodings that are added to the input embeddings
-    to provide the model with information about the position of tokens in a sequence.
-    The positional encodings are based on sine and cosine functions of different
-    frequencies.
+    This module generates positional encodings that are added to the input
+    embeddings to provide the model with information about the position of
+    tokens in a sequence. The positional encodings are based on sine and cosine
+    functions of different frequencies.
 
     The formulas for the positional encodings are:
     PE(pos, 2i) = sin(pos / 10000^(2i / d_model))
@@ -20,8 +20,8 @@ class SinusoidalPositionalEncoding(torch.nn.Module):
     - d_model: is the dimensionality of the model.
 
     The use of sine and cosine functions allows the model to learn relative
-    positional information, as the encoding for any position can be represented as a
-    linear function of the encoding of other positions.
+    positional information, as the encoding for any position can be
+    represented as a linear function of the encoding of other positions.
     """
 
     def __init__(self, d_model: int):
@@ -39,7 +39,7 @@ class SinusoidalPositionalEncoding(torch.nn.Module):
         """
         Generates sinusoidal positional encodings.
 
-        Note: The input tensor is only used to determine the sequence length and
+        Note: The input tensor is only used to determine the sequence length &
         device. Its values are not used in the computation.
 
         Args:
@@ -47,7 +47,8 @@ class SinusoidalPositionalEncoding(torch.nn.Module):
                 (batch_size, seq_len, d_model).
 
         Returns:
-            torch.Tensor: The positional encodings of the same shape as the input.
+            torch.Tensor: The positional encodings of the same shape as the
+                input.
         """
         # input_ -> (batch_size, seq_len, d_model)
         positions = torch.arange(input_.shape[1]).reshape(

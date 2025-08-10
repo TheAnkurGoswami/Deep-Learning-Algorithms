@@ -6,8 +6,9 @@ class Projection(torch.nn.Module):
     """
     Implements a linear projection layer.
 
-    This module applies a linear transformation to the input data. It is a fundamental
-    building block for many neural network architectures, including Transformers.
+    This module applies a linear transformation to the input data. It is a
+    fundamental building block for many neural network architectures, including
+    Transformers.
 
     The linear transformation is defined as:
     y = x @ W + b
@@ -16,8 +17,8 @@ class Projection(torch.nn.Module):
     - W: is the weight matrix.
     - b: is the bias vector (optional).
 
-    The weights are initialized from a normal distribution, and the bias (if used)
-    is initialized to zeros.
+    The weights are initialized from a normal distribution, and the bias
+    (if used) is initialized to zeros.
     """
 
     def __init__(
@@ -59,7 +60,8 @@ class Projection(torch.nn.Module):
                 in_features).
 
         Returns:
-            Tensor: The output tensor of shape (batch_size, seq_len, out_features).
+            Tensor: The output tensor of shape
+                (batch_size, seq_len, out_features).
         """
         # bsi -> (batch, seq_len, in_features)
         # io -> (in_features, out_features)
@@ -70,19 +72,18 @@ class Projection(torch.nn.Module):
         return output
 
 
-
 class FeedForwardNetwork(torch.nn.Module):
     """
     Implements the Position-wise Feed-Forward Network (FFN).
 
-    The FFN is applied to each position separately and identically. It consists of
-    two linear transformations with a ReLU activation in between.
+    The FFN is applied to each position separately and identically. It
+    consists of two linear transformations with a ReLU activation in between.
 
     The formula is:
     FFN(x) = max(0, x @ W1 + b1) @ W2 + b2
 
-    This network is a key component of both the encoder and decoder layers in the
-    Transformer model.
+    This network is a key component of both the encoder and decoder layers in
+    the Transformer model.
     """
 
     def __init__(self, d_model: int, d_ff: int):
@@ -114,4 +115,3 @@ class FeedForwardNetwork(torch.nn.Module):
         x = self.activation(x)  # (batch_size, seq_len, d_ff)
         x = self.linear2(x)  # (batch_size, seq_len, d_model)
         return x
-

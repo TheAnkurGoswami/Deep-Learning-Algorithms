@@ -10,11 +10,11 @@ class DecoderLayer(torch.nn.Module):
     Implements a single layer of the Transformer Decoder.
 
     A decoder layer consists of three main sub-layers:
-    1.  A masked multi-head self-attention mechanism. This ensures that predictions
-        for a position can only depend on known outputs at positions less than the
-        current position.
-    2.  A multi-head attention mechanism over the output of the encoder stack. This
-        is where the decoder "attends" to the input sequence.
+    1.  A masked multi-head self-attention mechanism. This ensures that
+        predictions for a position can only depend on known outputs at
+        positions less than the current position.
+    2.  A multi-head attention mechanism over the output of the encoder stack.
+        This is where the decoder "attends" to the input sequence.
     3.  A position-wise fully connected feed-forward network.
 
     Each of these sub-layers has a residual connection around it, followed by
@@ -57,7 +57,8 @@ class DecoderLayer(torch.nn.Module):
                 shape (batch_size, seq_len_enc, d_model).
 
         Returns:
-            torch.Tensor: The output tensor of the same shape as `in_embeddings`.
+            torch.Tensor: The output tensor of the same shape as
+                `in_embeddings`.
         """
         # Masked Multi-Head Self-Attention sub-layer
         mmha_out = self.mmha(in_embeddings, in_embeddings, in_embeddings)

@@ -4,6 +4,7 @@ from attention.layernorm import LayerNorm
 from attention.multi_head_attention import MultiHeadAttention
 from attention.projection import FeedForwardNetwork
 
+
 class EncoderLayer(torch.nn.Module):
     """
     Implements a single layer of the Transformer Encoder.
@@ -13,7 +14,8 @@ class EncoderLayer(torch.nn.Module):
     2.  A position-wise fully connected feed-forward network.
 
     Each of these sub-layers has a residual connection around it, followed by
-    layer normalization. The output of each sub-layer is `LayerNorm(x + Sublayer(x))`,
+    layer normalization. The output of each sub-layer is
+    `LayerNorm(x + Sublayer(x))`,
     where `Sublayer(x)` is the function implemented by the sub-layer itself.
     """
 

@@ -5,9 +5,10 @@ class LayerNorm(torch.nn.Module):
     """
     Implements Layer Normalization.
 
-    Layer Normalization is a technique to normalize the distributions of intermediate
-    layers. It helps in stabilizing the training of deep neural networks. Unlike
-    Batch Normalization, Layer Normalization is independent of the batch size.
+    Layer Normalization is a technique to normalize the distributions of
+    intermediate layers. It helps in stabilizing the training of deep neural
+    networks. Unlike Batch Normalization, Layer Normalization is independent of
+    the batch size.
 
     The formula for Layer Normalization is:
     y = ((x - E[x]) / sqrt(Var[x] + eps)) * gamma + beta
