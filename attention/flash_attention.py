@@ -1,3 +1,5 @@
+import math
+
 import torch
 from torch import Tensor
 
@@ -7,7 +9,6 @@ class FlashAttention(torch.nn.Module):
         super().__init__()
         self.block_size_q = 4
         self.block_size_kv = 4
-        self.block_size_v = 4
 
     def forward(
         self,
@@ -32,30 +33,33 @@ class FlashAttention(torch.nn.Module):
         """
 
         #  Assuming no batch dimension for simplicity
-        batch_size, seq_len_q, d_model = q_proj.shape
-        n_blocks_q = torch.ceil(seq_len_q / self.block_size_q)
-        n_blocks_kv = torch.ceil(k_proj.shape[1] / self.block_size_kv)
+        batch_size, seq_len, _ = q_proj.shape
+        # Use ceiling division to get number of blocks
+        n_blocks_q = int(math.ceil(seq_len / self.block_size_q))
+        n_blocks_kv = int(math.ceil(seq_len / self.block_size_kv))
 
-        output = torch.zeros((batch_size, seq_len_q, d_model))
-        rowsum = torch.zeros((batch_size, seq_len_q))
-        rowmax = torch.empty((batch_size, seq_len_q)).fill_(-torch.inf)
+        # Initialize output tensor, and running stats for online softmax
+        output = torch.zeros_like(q_proj)
+        rowsum = torch.zeros((batch_size, seq_len, 1))
+        rowmax = torch.full((batch_size, seq_len, 1), -torch.inf)
 
-        for block_kv_ix in range(int(n_blocks_kv)):
+        # Outer loop over key/value blocks
+        for block_kv_ix in range(n_blocks_kv):
             start_kv = block_kv_ix * self.block_size_kv
-            end_kv = min(start_kv + self.block_size_kv, k_proj.shape[1])
+            end_kv = min(start_kv + self.block_size_kv, seq_len)
 
-            # Process the key block
             k_block = k_proj[:, start_kv:end_kv, :]
-            #  Shape: (batch_size, block_size_kv, d_model)
+            # Shape: (batch_size, block_size_kv, d_model)
             v_block = v_proj[:, start_kv:end_kv, :]
-            #  Shape: (batch_size, block_size_kv, d_model)
-            for block_q_ix in range(int(n_blocks_q)):
-                start_q = block_q_ix * self.block_size_q
-                end_q = min(start_q + self.block_size_q, seq_len_q)
+            # Shape: (batch_size, block_size_kv, d_model)
 
-                # Process the query block
+            # Inner loop over query blocks
+            for block_q_ix in range(n_blocks_q):
+                start_q = block_q_ix * self.block_size_q
+                end_q = min(start_q + self.block_size_q, seq_len)
+
                 q_block = q_proj[:, start_q:end_q, :]
-                #  Shape: (batch_size, block_size_q, d_model)
+                # Shape: (batch_size, block_size_q, d_model)
 
                 logits = torch.einsum("bqd, bkd -> bqk", q_block, k_block)
                 # Shape: (batch_size, block_size_q, block_size_kv)
@@ -63,49 +67,55 @@ class FlashAttention(torch.nn.Module):
                 dim_k = k_block.shape[-1]  # basically d_model
                 logits /= dim_k**0.5
 
+                # Optionally, apply causal mask
+
                 ########## Calculate Online Softmax ##########
-                block_rowmax = torch.max(logits, dim=-1)
-                #  Shape: (batch_size, block_size_q)
+                block_rowmax, _ = torch.max(logits, dim=-1, keepdim=True)
+                # Shape: (batch_size, block_size_q, 1)
 
+                # Numerically stable softmax for the current block
                 block_P = torch.exp(logits - block_rowmax)
-                #  Shape: (batch_size, block_size_kv, d_model)
+                # Shape: (batch_size, block_size_q, block_size_kv)
 
-                block_rowsum = torch.sum(block_P, dim=-1)
-                # Shape: (batch_size, block_size_q)
+                block_rowsum = torch.sum(block_P, dim=-1, keepdim=True)
+                # Shape: (batch_size, block_size_q, 1)
 
-                block_rowmax_old = rowmax[:, start_q:end_q]
-                # Shape: (batch_size, block_size_q)
+                # Load old statistics
+                block_rowmax_old = rowmax[:, start_q:end_q, :]
+                # Shape: (batch_size, block_size_q, 1)
 
-                block_rowmax_new = rowmax[:, start_q:end_q] = torch.maximum(
+                # Compute new max
+                block_rowmax_new = torch.maximum(
                     block_rowmax_old, block_rowmax
                 )
-                # block_rowmax_new = rowmax[:, start_q:end_q]
-                # Shape: (batch_size, block_size_q)
+                # Shape: (batch_size, block_size_q, 1)
 
-                block_rowsum_old = rowsum[:, start_q:end_q]
-                # Shape: (batch_size, block_size_q)
-                block_rowsum_new = (
-                    torch.exp(block_rowmax_old - block_rowmax_new)
-                    * block_rowsum_old
-                    + torch.exp(block_rowmax - block_rowmax_new) * block_rowsum
+                # Update running statistics
+                exp_diff_old = torch.exp(block_rowmax_old - block_rowmax_new)
+                exp_diff_new = torch.exp(block_rowmax - block_rowmax_new)
+
+                block_rowsum_old = rowsum[:, start_q:end_q, :]
+                # Shape: (batch_size, block_size_q, 1)
+                block_rowsum_new = (exp_diff_old * block_rowsum_old) + (
+                    exp_diff_new * block_rowsum
                 )
-                # Optional: dropout
-                # block_P -> dropout
-                partial_out = torch.einsum("bqk, bkd -> bqd", block_P, v_block)
-                # Shape: (batch_size, block_size_q, d_model)
+
+                # Update output
+
+                # Optionally, apply dropout.
 
                 block_out_old = output[:, start_q:end_q, :]
                 # Shape: (batch_size, block_size_q, d_model)
 
-                output[:, start_q:end_q, :] = (
-                    (
-                        block_rowsum_old
-                        * block_out_old
-                        * torch.exp(block_rowmax_old - block_rowmax_new)
-                    )
-                    + (
-                        partial_out
-                        * torch.exp(block_rowmax - block_rowmax_new)
-                    )
-                ) / block_rowsum_new
+                partial_out = torch.einsum("bqk, bkd -> bqd", block_P, v_block)
+                # Shape: (batch_size, block_size_q, d_model)
+
+                numerator = (
+                    block_rowsum_old * exp_diff_old * block_out_old
+                ) + (exp_diff_new * partial_out)
+                output[:, start_q:end_q, :] = numerator / block_rowsum_new
+
+                # Store updated statistics
+                rowmax[:, start_q:end_q, :] = block_rowmax_new
+                rowsum[:, start_q:end_q, :] = block_rowsum_new
         return output
