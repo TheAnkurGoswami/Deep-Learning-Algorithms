@@ -40,8 +40,8 @@ class FlashAttention(torch.nn.Module):
 
         # Initialize output tensor, and running stats for online softmax
         output = torch.zeros_like(q_proj)
-        rowsum = torch.zeros((batch_size, seq_len, 1))
-        rowmax = torch.full((batch_size, seq_len, 1), -torch.inf)
+        softmax_normalizers = torch.zeros((batch_size, seq_len, 1))
+        max_logits = torch.full((batch_size, seq_len, 1), -torch.inf)
 
         # Outer loop over key/value blocks
         for block_kv_ix in range(n_blocks_kv):
@@ -70,52 +70,56 @@ class FlashAttention(torch.nn.Module):
                 # Optionally, apply causal mask
 
                 ########## Calculate Online Softmax ##########
-                block_rowmax, _ = torch.max(logits, dim=-1, keepdim=True)
+                block_max_logit, _ = torch.max(logits, dim=-1, keepdim=True)
                 # Shape: (batch_size, block_size_q, 1)
 
                 # Numerically stable softmax for the current block
-                block_P = torch.exp(logits - block_rowmax)
+                attn_wt_unnormalized = torch.exp(logits - block_max_logit)
                 # Shape: (batch_size, block_size_q, block_size_kv)
 
-                block_rowsum = torch.sum(block_P, dim=-1, keepdim=True)
-                # Shape: (batch_size, block_size_q, 1)
-
-                # Load old statistics
-                block_rowmax_old = rowmax[:, start_q:end_q, :]
-                # Shape: (batch_size, block_size_q, 1)
-
-                # Compute new max
-                block_rowmax_new = torch.maximum(
-                    block_rowmax_old, block_rowmax
+                block_softmax_normalizer = torch.sum(
+                    attn_wt_unnormalized, dim=-1, keepdim=True
                 )
                 # Shape: (batch_size, block_size_q, 1)
 
-                # Update running statistics
-                exp_diff_old = torch.exp(block_rowmax_old - block_rowmax_new)
-                exp_diff_new = torch.exp(block_rowmax - block_rowmax_new)
-
-                block_rowsum_old = rowsum[:, start_q:end_q, :]
+                # Load old statistics
+                prev_max_logit = max_logits[:, start_q:end_q, :]
                 # Shape: (batch_size, block_size_q, 1)
-                block_rowsum_new = (exp_diff_old * block_rowsum_old) + (
-                    exp_diff_new * block_rowsum
+
+                # Compute new max
+                new_max_logit = torch.maximum(prev_max_logit, block_max_logit)
+                # Shape: (batch_size, block_size_q, 1)
+
+                # Update running statistics
+                rescale_factor_prev = torch.exp(prev_max_logit - new_max_logit)
+                rescale_factor_block = torch.exp(
+                    block_max_logit - new_max_logit
+                )
+
+                block_rowsum_old = softmax_normalizers[:, start_q:end_q, :]
+                # Shape: (batch_size, block_size_q, 1)
+                block_rowsum_new = (rescale_factor_prev * block_rowsum_old) + (
+                    rescale_factor_block * block_softmax_normalizer
                 )
 
                 # Update output
 
                 # Optionally, apply dropout.
 
-                block_out_old = output[:, start_q:end_q, :]
+                output_block_prev = output[:, start_q:end_q, :]
                 # Shape: (batch_size, block_size_q, d_model)
 
-                partial_out = torch.einsum("bqk, bkd -> bqd", block_P, v_block)
+                output_block_curr = torch.einsum(
+                    "bqk, bkd -> bqd", attn_wt_unnormalized, v_block
+                )
                 # Shape: (batch_size, block_size_q, d_model)
 
                 numerator = (
-                    block_rowsum_old * exp_diff_old * block_out_old
-                ) + (exp_diff_new * partial_out)
+                    block_rowsum_old * rescale_factor_prev * output_block_prev
+                ) + (rescale_factor_block * output_block_curr)
                 output[:, start_q:end_q, :] = numerator / block_rowsum_new
 
                 # Store updated statistics
-                rowmax[:, start_q:end_q, :] = block_rowmax_new
-                rowsum[:, start_q:end_q, :] = block_rowsum_new
+                max_logits[:, start_q:end_q, :] = new_max_logit
+                softmax_normalizers[:, start_q:end_q, :] = block_rowsum_new
         return output
