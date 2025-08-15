@@ -49,12 +49,11 @@ class ScaledDotProductAttention(torch.nn.Module):
         # logits = torch.bmm(q_proj, k_proj.transpose(-1, -2))
 
         # Scale the logits by the square root of the key dimension
-        batch_size, _, q_dim = q_proj.shape
         dim_k = k_proj.shape[-1]
         logits /= dim_k**0.5
 
         # Apply causal mask if required
-        mask = torch.zeros(batch_size, q_dim, dim_k)
+        mask = torch.zeros_like(logits)
         if causal_mask:
             mask = torch.masked_fill(
                 mask,
